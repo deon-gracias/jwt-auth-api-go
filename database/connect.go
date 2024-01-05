@@ -35,7 +35,6 @@ func ConnectDB(
 		port,
 	)
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	DB.Set("gorm:association_autoupdate", false).Set("gorm:association_autocreate", false).Create(&user)
 
 	if err != nil {
 		panic("Failed to connect to database")
