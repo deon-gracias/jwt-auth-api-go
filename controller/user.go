@@ -34,7 +34,7 @@ func GetUser(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 
 	if err != nil {
-		return c.Status(404).JSON(fiber.Map{
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"status": "error",
 			"error":  fmt.Sprintf("No user with ID: %s", id),
 		})
@@ -44,7 +44,7 @@ func GetUser(c *fiber.Ctx) error {
 	database.DB.Find(&user, id)
 
 	if user.Email == "" {
-		return c.Status(404).JSON(fiber.Map{
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"status": "error",
 			"error":  fmt.Sprintf("No user with ID: %s", id),
 		})
@@ -63,7 +63,7 @@ func CreateUser(c *fiber.Ctx) error {
 	user := new(model.User)
 
 	if err := c.BodyParser(user); err != nil {
-		return c.Status(500).JSON(fiber.Map{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
 			"message": "User structure is improper",
 			"data":    err,
@@ -72,7 +72,7 @@ func CreateUser(c *fiber.Ctx) error {
 
 	hash, err := HashPassword(user.Password)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Couldn't hash password",
 			"data":    err,
@@ -82,7 +82,7 @@ func CreateUser(c *fiber.Ctx) error {
 	user.Password = hash
 
 	if err := db.Create(&user).Error; err != nil {
-		return c.Status(500).JSON(fiber.Map{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":   "error",
 			"messsage": "",
 			"data":     err,
@@ -90,7 +90,7 @@ func CreateUser(c *fiber.Ctx) error {
 	}
 
 	if err := c.BodyParser(user); err != nil {
-		return c.Status(500).JSON(fiber.Map{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Couldn't create user",
 			"data":    err,
@@ -111,7 +111,7 @@ func UpdateUser(c *fiber.Ctx) error {
 
 	var request RequestData
 	if err := c.BodyParser(&request); err != nil {
-		return c.Status(500).JSON(fiber.Map{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
 			"message": "User structure isn't correct",
 			"data":    err,
@@ -129,7 +129,7 @@ func UpdateUser(c *fiber.Ctx) error {
 	token := c.Locals("user").(*jwt.Token)
 
 	if !validToken(token, id.String()) {
-		return c.Status(500).JSON(fiber.Map{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Invalid JWT Token",
 			"data":    nil,
@@ -159,7 +159,7 @@ func DeleteUser(c *fiber.Ctx) error {
 
 	var request RequestData
 	if err := c.BodyParser(&request); err != nil {
-		return c.Status(500).JSON(fiber.Map{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Input structure is improper",
 			"data":    err,
@@ -177,7 +177,7 @@ func DeleteUser(c *fiber.Ctx) error {
 	token := c.Locals("user").(*jwt.Token)
 
 	if !validToken(token, id.String()) {
-		return c.Status(500).JSON(fiber.Map{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Invalid JWT Token",
 			"data":    nil,
@@ -185,7 +185,7 @@ func DeleteUser(c *fiber.Ctx) error {
 	}
 
 	if !validUser(id, request.Password) {
-		return c.Status(500).JSON(fiber.Map{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Couldn't find user",
 			"data":    nil,
