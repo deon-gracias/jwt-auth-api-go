@@ -21,7 +21,7 @@ func validToken(t *jwt.Token, id string) bool {
 	return claims["id"] == id
 }
 
-func validUser(id uuid.UUID, p string) bool {
+func validUser(id uuid.UUID) bool {
 	var user model.User
 
 	database.DB.First(&user, id)
@@ -184,7 +184,7 @@ func DeleteUser(c *fiber.Ctx) error {
 		})
 	}
 
-	if !validUser(id, request.Password) {
+	if !validUser(id) {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Couldn't find user",
