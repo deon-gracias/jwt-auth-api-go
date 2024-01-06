@@ -12,7 +12,8 @@ func SetupRoutes(app *fiber.App) {
 	// Middleware
 	api := app.Group("/api/auth", logger.New())
 
-	api.Post("/login", controller.Login) // Authenticate User
+	api.Post("/login", controller.Login)                                     // Authenticate User
+	api.Get("/verify-token", middleware.Protected(), controller.VerifyToken) // Verify Token
 
 	// User Group Route
 	user := api.Group("/user")

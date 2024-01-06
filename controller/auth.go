@@ -9,6 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -90,6 +91,42 @@ func Login(c *fiber.Ctx) error {
 		"data": fiber.Map{
 			"user":  userModel,
 			"token": t,
+		},
+	})
+}
+
+func VerifyToken(c *fiber.Ctx) error {
+	token := c.Locals("user").(*jwt.Token)
+
+	claims := token.Claims.(jwt.MapClaims)
+
+	id, err := uuid.Parse(claims["id"].(string))
+
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"status":  "error",
+			"message": "ID is malformed",
+			"data":    nil,
+		})
+	}
+
+	var user model.User
+	database.DB.First(&user, id)
+
+	if user.Email == "" {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Couldn't find user",
+			"data":    nil,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  "success",
+		"message": "Valid Token",
+		"data": fiber.Map{
+			"isValid": true,
+			"user":    user,
 		},
 	})
 }
